@@ -16,7 +16,9 @@ class RegisterController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|string|in:guest,vendor', // Don't let them register as super_admin
+            'role' => 'required|string|in:guest,vendor', // Don't let them register as
+            'interests' => 'nullable|array', // Array of Interest IDs: [1, 4, 7]
+
         ]);
 
         // dd($request->role);
@@ -26,8 +28,13 @@ class RegisterController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
-            'status' => ($request->role === 'vendor') ? 'pending' : 'active', 
+            'status' => ($request->role === 'vendor') ? 'pending' : 'active',
         ]);
+
+        if ($request->has('interests')) {
+            // We use sync() to attach the IDs to the pivot table
+            $user->interests()->sync($request->interests);
+        }
 
         // 3. Create a token so they are "logged in" immediately
         $token = $user->createToken('auth_token')->plainTextToken;
