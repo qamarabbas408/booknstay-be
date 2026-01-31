@@ -27,6 +27,10 @@ class HotelResource extends JsonResource
             'reviewCount' => 120,
             'featured' => $this->status === 'active',
             'amenities' => $this->amenities->pluck('slug')->toArray(),
+            'stars' => $this->star_rating, // 3, 4, or 5 (Matches your UI stars)
+            // Community Rating (Matches your UI 4.9, 4.8 etc)
+            'rating' => $this->average_rating,
+            'reviewCount' => $this->review_count,
         ];
     }
 }

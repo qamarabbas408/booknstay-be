@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\Amenity;
 use App\Models\Hotel;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use App\Models\Amenity;
 
 class HotelSeeder extends Seeder
 {
@@ -92,12 +92,12 @@ class HotelSeeder extends Seeder
                 'price_range' => $i % 3 === 0 ? '$$$$' : '$$',
                 'status' => 'active',
                 'base_price' => $i * 50,
-
+                // 'star_rating' => 3,
             ];
         }
-$allAmenityIds = Amenity::pluck('id')->toArray();
-$priceRanges = ['$', '$$', '$$$', '$$$$'];
-
+        $allAmenityIds = Amenity::pluck('id')->toArray();
+        $priceRanges = ['$', '$$', '$$$', '$$$$'];
+        $stars = [3, 5, 4];
 
         // 4. Create hotels and attach images
         foreach ($hotels as $hotelData) {
@@ -110,7 +110,11 @@ $priceRanges = ['$', '$$', '$$$', '$$$$'];
             $hotel->amenities()->attach(
                 array_rand(array_flip($allAmenityIds), rand(3, 5))
             );
-            $hotel->price_range = array_rand($priceRanges);
+            $hotel->price_range = $priceRanges[array_rand($priceRanges)];
+            $hotel->star_rating = $stars[array_rand($stars)];
+
+            $hotel->save();
+
         }
     }
 }

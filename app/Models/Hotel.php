@@ -4,14 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
-use App\Models\HotelImage;
-use App\Models\Amenity;
-
 
 class Hotel extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'name',
         'description',
@@ -23,19 +20,37 @@ class Hotel extends Model
         'max_capacity',
         'price_range',
         'status',
-        'base_price'
+        'base_price',
+        'star_rating',
     ];
 
-
-    public function owner () {
-        return $this->belongsTo(User::class,'user_id');
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function images () {
+    public function images()
+    {
         return $this->hasMany(HotelImage::class);
     }
 
-    public function amenities () {
+    public function amenities()
+    {
         return $this->belongsToMany(Amenity::class);
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function getAverageRatingAttribute()
+    {
+        return round($this->reviews()->avg('rating'), 1) ?: 0;
+    }
+
+    public function getReviewCountAttribute()
+    {
+        return $this->reviews()->count();
     }
 }

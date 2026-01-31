@@ -16,7 +16,7 @@ class PublicHotelController extends Controller
     public function index(Request $request)
     {
         // 1. Start the query on Active hotels
-        $query = Hotel::where('status', 'active')->with(['images', 'amenities']);
+        $query = Hotel::where('status', 'active')->with(['images', 'amenities', 'reviews']);
 
         // 2. SEARCH (By Name or City)
         if ($request->has('search')) {
@@ -45,6 +45,12 @@ class PublicHotelController extends Controller
                     $q->where('slug', $amenitySlug);
                 });
             }
+        }
+
+        // STAR RATING FILTER (Luxury, Upscale, Comfort)
+        if ($request->has('stars') && is_array($request->stars)) {
+            // e.g. ?stars[]=5&stars[]=4
+            $query->whereIn('star_rating', $request->stars);
         }
 
         // 4. SORTING
