@@ -26,7 +26,7 @@ class HotelResource extends JsonResource
             'rating' => 4.8, // Hardcoded until we build the Reviews API
             'reviewCount' => 120,
             'featured' => $this->status === 'active',
-            'amenities' => ['wifi', 'pool'], // Dummy for now
+            'amenities' => $this->amenities->pluck('slug')->toArray(),
         ];
     }
 }

@@ -1,8 +1,11 @@
 <?php
+
 namespace Database\Seeders;
-use App\Models\User;
+
 use App\Models\Hotel;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use App\Models\Amenity;
 
 class HotelSeeder extends Seeder
 {
@@ -10,10 +13,11 @@ class HotelSeeder extends Seeder
     {
         // 1. Get our existing vendors
         $grandHotelVendor = User::where('email', 'marco@grandhotel.com')->first();
-        $urbanLoftVendor  = User::where('email', 'sarah@eventspace.com')->first();
+        $urbanLoftVendor = User::where('email', 'sarah@eventspace.com')->first();
 
-        if (!$grandHotelVendor || !$urbanLoftVendor) {
-            $this->command->error("Vendors not found. Please run UserSeeder first.");
+        if (! $grandHotelVendor || ! $urbanLoftVendor) {
+            $this->command->error('Vendors not found. Please run UserSeeder first.');
+
             return;
         }
 
@@ -82,7 +86,7 @@ class HotelSeeder extends Seeder
                 'address' => "{$i} Example Street",
                 'city' => $i % 2 === 0 ? 'Miami' : 'New York',
                 'country' => 'USA',
-                'zip_code' => '1000' . $i,
+                'zip_code' => '1000'.$i,
                 'total_rooms' => 50 + $i,
                 'max_capacity' => 100 + ($i * 10),
                 'price_range' => $i % 3 === 0 ? '$$$$' : '$$',
@@ -91,6 +95,7 @@ class HotelSeeder extends Seeder
 
             ];
         }
+$allAmenityIds = Amenity::pluck('id')->toArray();
 
         // 4. Create hotels and attach images
         foreach ($hotels as $hotelData) {
@@ -100,6 +105,9 @@ class HotelSeeder extends Seeder
                 ['image_path' => 'hotels/sample1.jpg', 'is_primary' => true],
                 ['image_path' => 'hotels/sample2.jpg', 'is_primary' => false],
             ]);
+            $hotel->amenities()->attach(
+                array_rand(array_flip($allAmenityIds), rand(3, 5))
+            );
         }
     }
 }

@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Api\InterestController;
 use App\Http\Controllers\Api\PublicHotelController;
+use App\Http\Controllers\Api\AmentiyController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,3 +36,6 @@ Route::post('/register/vendor', [RegisterController::class, 'registerVendor']);
 
 // Public route - anyone can see hotels
 Route::get('/hotels', [PublicHotelController::class, 'index']);
+
+// Public route - anyone can see amenities
+Route::get('/amenities', [AmentiyController::class, 'index']);

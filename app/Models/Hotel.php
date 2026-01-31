@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use App\Models\HotelImage;
+use App\Models\Amenity;
 
 
 class Hotel extends Model
@@ -32,5 +33,9 @@ class Hotel extends Model
 
     public function images () {
         return $this->hasMany(HotelImage::class);
+    }
+
+    public function amenities () {
+        return $this->belongsToMany(Amenity::class);
     }
 }
