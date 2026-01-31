@@ -23,7 +23,8 @@ class PublicHotelController extends Controller
             $searchTerm = $request->query('search');
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('name', 'LIKE', "%{$searchTerm}%")
-                    ->orWhere('city', 'LIKE', "%{$searchTerm}%");
+                    ->orWhere('city', 'LIKE', "%{$searchTerm}%")
+                    ->orWhere('country', 'LIKE', "%{$searchTerm}%");
             });
         }
 

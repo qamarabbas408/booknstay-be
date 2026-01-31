@@ -96,6 +96,8 @@ class HotelSeeder extends Seeder
             ];
         }
 $allAmenityIds = Amenity::pluck('id')->toArray();
+$priceRanges = ['$', '$$', '$$$', '$$$$'];
+
 
         // 4. Create hotels and attach images
         foreach ($hotels as $hotelData) {
@@ -108,6 +110,7 @@ $allAmenityIds = Amenity::pluck('id')->toArray();
             $hotel->amenities()->attach(
                 array_rand(array_flip($allAmenityIds), rand(3, 5))
             );
+            $hotel->price_range = array_rand($priceRanges);
         }
     }
 }
