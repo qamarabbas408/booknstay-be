@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Api\InterestController;
+use App\Http\Controllers\Api\PublicHotelController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,3 +32,6 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/interests', [InterestController::class, 'index']);
 
 Route::post('/register/vendor', [RegisterController::class, 'registerVendor']);
+
+// Public route - anyone can see hotels
+Route::get('/hotels', [PublicHotelController::class, 'index']);

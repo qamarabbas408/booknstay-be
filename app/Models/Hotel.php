@@ -22,6 +22,7 @@ class Hotel extends Model
         'max_capacity',
         'price_range',
         'status',
+        'base_price'
     ];
 
 

@@ -1,5 +1,4 @@
 <?php
-
 namespace Database\Seeders;
 
 use App\Models\User;
@@ -23,7 +22,7 @@ class UserSeeder extends Seeder
             'status' => 'active',
         ]);
 
-        // --- 2. GUESTS (Travelers) ---
+        // --- 2. EXISTING GUESTS ---
         $guests = [
             ['name' => 'Alice Traveler', 'email' => 'alice@gmail.com'],
             ['name' => 'Bob Explorer', 'email' => 'bob@gmail.com'],
@@ -39,13 +38,12 @@ class UserSeeder extends Seeder
                 'phone' => '+123456789',
             ]);
 
-            // Assign 3 random interests to each guest
             $guest->interests()->attach(
                 $interests->random(3)->pluck('id')->toArray()
             );
         }
 
-        // --- 3. VENDORS (Business Owners) ---
+        // --- 3. EXISTING VENDORS ---
         $vendors = [
             [
                 'name' => 'Marco Polo',
@@ -69,10 +67,9 @@ class UserSeeder extends Seeder
                 'email' => $v['email'],
                 'password' => $password,
                 'role' => 'vendor',
-                'status' => 'active', // Set to active so they can bypass the waiting room
+                'status' => 'active',
             ]);
 
-            // Create Vendor Profile
             $vendorUser->vendorProfile()->create([
                 'business_name' => $v['business'],
                 'business_type' => $v['type'],
@@ -80,7 +77,6 @@ class UserSeeder extends Seeder
                 'website' => 'https://' . strtolower(str_replace(' ', '-', $v['business'])) . '.com',
             ]);
 
-            // Create First Hotel Listing
             $vendorUser->hotels()->create([
                 'name' => $v['business'],
                 'description' => 'A wonderful ' . $v['type'] . ' located in the heart of ' . $v['city'] . '. Experience world-class service and luxury.',
@@ -93,6 +89,22 @@ class UserSeeder extends Seeder
                 'price_range' => '$$$',
                 'status' => 'active',
             ]);
+        }
+
+        // --- 4. ADDITIONAL USERS (20 more) ---
+        for ($i = 1; $i <= 20; $i++) {
+            $guest = User::create([
+                'name' => "Guest User {$i}",
+                'email' => "guest{$i}@example.com",
+                'password' => $password,
+                'role' => 'guest',
+                'status' => 'active',
+                'phone' => '+123456789',
+            ]);
+
+            $guest->interests()->attach(
+                $interests->random(3)->pluck('id')->toArray()
+            );
         }
     }
 }
