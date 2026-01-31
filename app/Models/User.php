@@ -8,6 +8,9 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Interest;
+use App\Models\VendorProfile;
+use App\Models\Hotel;
+
 
 class User extends Authenticatable
 {
@@ -49,6 +52,14 @@ class User extends Authenticatable
 
     public function interests(){
         return $this->belongsToMany(Interest::class);
+    }
+
+    public function vendorProfile() {
+        return $this->hasOne(VendorProfile::class);
+    }
+
+    public function hotels() {
+        return $this->hasMany(Hotel::class);
     }
 }
 

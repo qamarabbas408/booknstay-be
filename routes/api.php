@@ -25,7 +25,9 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureUserIsSuperAdmin::
 });
 
 
-Route::post('/register', [RegisterController::class, 'register']);
+Route::post('/register/guest', [RegisterController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::get('/interests', [InterestController::class, 'index']);
+
+Route::post('/register/vendor', [RegisterController::class, 'registerVendor']);
