@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Api\InterestController;
 use App\Http\Controllers\Api\PublicHotelController;
 use App\Http\Controllers\Api\AmentiyController;
+use App\Http\Controllers\Api\PublicEventController;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,3 +40,6 @@ Route::get('/hotels', [PublicHotelController::class, 'index']);
 
 // Public route - anyone can see amenities
 Route::get('/amenities', [AmentiyController::class, 'index']);
+
+Route::get('/events', [PublicEventController::class, 'index']);
+Route::get('/event-categories', [PublicEventController::class, 'getCategories']);

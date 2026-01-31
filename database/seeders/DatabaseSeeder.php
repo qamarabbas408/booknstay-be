@@ -17,6 +17,8 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             AmenitySeeder::class,
             HotelSeeder::class,
+            EventCategorySeeder::class,
+            EventSeeder::class
         ]);
 
     }

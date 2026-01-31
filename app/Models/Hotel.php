@@ -53,4 +53,9 @@ class Hotel extends Model
     {
         return $this->reviews()->count();
     }
+
+    public function bookings()
+    {
+        return $this->morphMany(Booking::class, 'bookable');
+    }
 }
