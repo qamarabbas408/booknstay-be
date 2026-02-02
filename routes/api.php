@@ -1,13 +1,13 @@
 <?php
 
-use App\Http\Controllers\Auth\AuthController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\Api\InterestController;
-use App\Http\Controllers\Api\PublicHotelController;
 use App\Http\Controllers\Api\AmentiyController;
+use App\Http\Controllers\Api\InterestController;
 use App\Http\Controllers\Api\PublicEventController;
+use App\Http\Controllers\Api\PublicHotelController;
+use App\Http\Controllers\Api\Vendor\VendorEventController;
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\RegisterController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,10 +23,10 @@ use App\Http\Controllers\Api\PublicEventController;
 // Protected Admin Routes
 Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureUserIsSuperAdmin::class])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/events', [VendorEventController::class, 'store']);
 
     // Put all your Admin APIs here
 });
-
 
 Route::post('/register/guest', [RegisterController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);

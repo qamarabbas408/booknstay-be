@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+// Import this
+
 class Event extends Model
 {
     use HasFactory;
@@ -16,13 +18,15 @@ class Event extends Model
         'description',
         'location',          // City, Country
         'venue',             // Specific Building (e.g. Wembley Arena)
-        'start_time',    // Matches migration, 
+        'start_time',    // Matches migration,
         'end_time',      // Matches migration,'
         'base_price',        // Price for tickets
         'image',             // Main banner image
         'status',            // active, pending, cancelled
         'is_featured',       // UI badge
         'is_trending',       // UI pulse animation
+        'visibility',
+
     ];
 
     // Ensure dates are treated as Carbon objects
@@ -54,5 +58,35 @@ class Event extends Model
     public function bookings()
     {
         return $this->morphMany(Booking::class, 'bookable');
+    }
+
+    /**
+     * Business Logic: Calculate remaining tickets
+     */
+    public function getTicketsLeftAttribute()
+    {
+        // Sum the tickets_count from all 'confirmed' or 'completed' bookings
+        $soldTickets = $this->bookings()
+            ->whereIn('status', ['confirmed', 'completed'])
+            ->sum('tickets_count');
+
+        return max(0, $this->total_capacity - (int) $soldTickets);
+    }
+
+    /**
+     * Business Logic: Is the event over?
+     */
+    public function getIsPastAttribute()
+    {
+        return $this->end_time ? $this->end_time->isPast() : $this->start_time->isPast();
+    }
+
+    public function tickets()
+    {
+        return $this->hasMany(EventTicket::class);
+    }
+
+    public function images() {
+        return $this->hasMany(EventImage::class);
     }
 }

@@ -21,7 +21,7 @@ class HotelResource extends JsonResource
             'pricePerNight' => (float) $this->base_price,
             // We take the first image or a placeholder
             'image' => $this->images->where('is_primary', true)->first()?->image_path
-                       ?? 'https://via.placeholder.com/800x600?text=No+Image',
+                       ?? null,
             'stars' => 5, // Hardcoded for now until we add star logic
             'rating' => 4.8, // Hardcoded until we build the Reviews API
             'reviewCount' => 120,

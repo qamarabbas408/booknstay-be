@@ -14,6 +14,8 @@ class EventResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $mainImage = $this->images->where('is_primary', true)->first() ?? $this->images->first();
+
         return [
             'id' => $this->id,
             'title' => $this->title,
@@ -33,7 +35,10 @@ class EventResource extends JsonResource
             'tickets_left' => $this->tickets_left, // This calls getTicketsLeftAttribute() in Model
             'is_sold_out' => $this->tickets_left <= 0,
 
-            'image' => $this->image_path ?? 'https://via.placeholder.com/800x600',
+            // 'image' => $this->image_path ?? 'https://via.placeholder.com/800x600',
+            'image' => $mainImage
+                        ? $mainImage->image_path
+                        : null,
             'rating' => 4.8, // Dummy until Review logic
             'attendees' => 1200, // Dummy until Ticket sales logic
             'featured' => (bool) $this->is_featured,
