@@ -61,5 +61,8 @@ class User extends Authenticatable
     public function hotels() {
         return $this->hasMany(Hotel::class);
     }
+    public function events(){
+        return $this->hasMany(Event::class);
+    }
 }
 
