@@ -254,4 +254,17 @@ class VendorEventController extends Controller
 
         return $this->successResponse(null, 'Event deleted successfully');
     }
+
+    public function show(Event $event)
+    {
+        // Security: Ensure the vendor owns this event
+        if ($event->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // Return using the Vendor Resource so all fields are available
+        return $this->successResponse(
+            new VendorEventResource($event->load(['tickets', 'category', 'images']))
+        );
+    }
 }

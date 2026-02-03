@@ -21,7 +21,7 @@ class VendorEventResource extends JsonResource
             'visibility' => $this->visibility,
             'start_date' => $this->start_time?->format('Y-m-d H:i'),
             'end_date' => $this->end_time?->format('Y-m-d H:i'),
-
+            'description'=>$this->description, 
             // Stats for Dashboard
             'total_capacity' => $this->total_capacity,
             'tickets_sold' => $this->tickets()->sum('sold'),
