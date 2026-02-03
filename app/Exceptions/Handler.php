@@ -27,4 +27,12 @@ class Handler extends ExceptionHandler
             //
         });
     }
+
+    protected function unauthenticated($request, \Illuminate\Auth\AuthenticationException $exception)
+    {
+        return response()->json([
+            'status' => 401,
+            'error' => 'You are not authorized to access this resource.',
+        ], 401);
+    }
 }

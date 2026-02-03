@@ -18,7 +18,9 @@ class DatabaseSeeder extends Seeder
             AmenitySeeder::class,
             HotelSeeder::class,
             EventCategorySeeder::class,
-            EventSeeder::class
+            EventSeeder::class,
+            BookingSeeder::class,       // 6. Bookings (needs hotels and events)
+
         ]);
 
     }

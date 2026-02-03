@@ -15,4 +15,8 @@ class EventTicket extends Model
     {
         return $this->belongsTo(Event::class);
     }
+
+    public function bookings() {
+        return $this->hasMany(Booking::class, 'event_ticket_id');
+    }
 }
