@@ -7,7 +7,9 @@ use App\Http\Controllers\Api\PublicHotelController;
 use App\Http\Controllers\Api\Vendor\VendorEventController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Api\BookingController;
 use Illuminate\Support\Facades\Route;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -29,7 +31,9 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureUserIsSuperAdmin::
     Route::put('vendor/event/{event}', [VendorEventController::class, 'update']); //edit 
     Route::delete('vendor/event/{event}', [VendorEventController::class, 'destroy']);
     Route::get('vendor/event/{event}', [VendorEventController::class, 'show']); // show single event by id 
-    // Put all your Admin APIs here
+  
+    Route::get('guest/bookings', [BookingController::class, 'index']);
+    
 });
 
 Route::post('/register/guest', [RegisterController::class, 'register']);

@@ -12,24 +12,33 @@ class BookingResource extends JsonResource
      *
      * @return array<string, mixed>
      */
-    public function toArray(Request $request): array
-    {
-        return [
-            'id' => $this->id,
-            'type' => $this->bookable_type === 'App\Models\Hotel' ? 'hotel' : 'event',
-            'title' => $this->bookable->name ?? $this->bookable->title,
-            'status' => $this->status,
-            'bookingCode' => $this->booking_code,
-            'price' => (float) $this->total_price,
+ public function toArray(Request $request): array
+{
+    $isEvent = $this->bookable_type === 'App\Models\Event';
 
-            // Dynamic Logic for UI
-            'details' => $this->bookable_type === 'App\Models\Event'
-                ? "{$this->tickets_count} tickets • {$this->ticketTier?->name}"
-                : "{$this->guests_count} guests • {$this->rooms_count} rooms",
+    return [
+        'id' => $this->id,
+        'type' => $isEvent ? 'event' : 'hotel',
+        'title' => $isEvent ? $this->bookable->title : $this->bookable->name,
+        'location' => $this->bookable->location,
+        'status' => $this->status,
+        'price' => (float) $this->total_price,
+        'bookingCode' => $this->booking_code,
+        'image' => $isEvent 
+            ?  $this->bookable->image_path
+            : $this->bookable->images->where('is_primary', true)->first()?->image_path,
+        
+        // Custom string logic for your UI
+        'guestsOrTickets' => $isEvent 
+            ? "{$this->tickets_count} tickets • " . ($this->ticketTier->name ?? 'Standard')
+            : "{$this->guests_count} guests, {$this->rooms_count} room" . ($this->rooms_count > 1 ? 's' : ''),
 
-            'dates' => $this->bookable_type === 'App\Models\Event'
-                ? $this->event_date?->format('M d, Y • g:i A')
-                : $this->check_in?->format('M d').' – '.$this->check_out?->format('M d, Y'),
-        ];
-    }
+        'dates' => $isEvent 
+            ? $this->event_date?->format('M d, Y • g:i A')
+            : $this->check_in?->format('M d') . ' – ' . $this->check_out?->format('M d, Y'),
+        
+        'checkIn' => $this->check_in?->format('M d, Y • g:i A'),
+        'checkOut' => $this->check_out?->format('M d, Y • g:i A'),
+    ];
+}
 }

@@ -18,6 +18,11 @@ class Booking extends Model
         'rooms_count', 'tickets_count', 'total_price', 'status',
         'event_ticket_id',
     ];
+      protected $casts = [
+        'check_in'   => 'datetime',
+        'check_out'  => 'datetime',
+        'event_date' => 'datetime',
+    ];
 
     /*
    In Laravel, we will use a Polymorphic Relationship. This allows a single bookings table to handle both Hotels and Events without creating two separate tables.
