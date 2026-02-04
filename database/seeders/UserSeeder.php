@@ -91,6 +91,41 @@ class UserSeeder extends Seeder
             ]);
         }
 
+        // --- 5. ADDITIONAL VENDORS (20 more) ---
+for ($i = 1; $i <= 20; $i++) {
+    $vendorUser = User::create([
+        'name' => "Vendor User {$i}",
+        'email' => "vendor{$i}@example.com",
+        'password' => $password,
+        'role' => 'vendor',
+        'status' => 'active',
+    ]);
+
+    // Vendor profile
+    $businessName = "Business {$i}";
+    $vendorUser->vendorProfile()->create([
+        'business_name'  => $businessName,
+        'business_type'  => $i % 2 === 0 ? 'resort' : 'event_venue',
+        'business_email' => "vendor{$i}@example.com",
+        'website'        => 'https://' . strtolower(str_replace(' ', '-', $businessName)) . '.com',
+    ]);
+
+    // Hotel or venue record
+    $vendorUser->hotels()->create([
+        'name'         => $businessName,
+        'description'  => 'A wonderful ' . ($i % 2 === 0 ? 'resort' : 'event venue') . ' offering premium services.',
+        'address'      => '123 Vendor St',
+        'city'         => $i % 2 === 0 ? 'Miami' : 'New York',
+        'country'      => 'USA',
+        'zip_code'     => '1000' . $i,
+        'total_rooms'  => $i % 2 === 0 ? rand(20, 100) : null,
+        'max_capacity' => rand(100, 500),
+        'price_range'  => '$$',
+        'status'       => 'active',
+    ]);
+}
+
+
         // --- 4. ADDITIONAL USERS (20 more) ---
         for ($i = 1; $i <= 20; $i++) {
             $guest = User::create([
