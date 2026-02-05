@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Traits\ApiResponser; 
+use App\Traits\ApiResponser;
 use App\Http\Resources\BookingResource;
 use App\Models\Booking;
 use App\Models\Event;
@@ -14,9 +14,9 @@ use Illuminate\Support\Str;
 
 class BookingController extends Controller
 {
-    use ApiResponser; 
+    use ApiResponser;
 
-     /**
+    /**
      * Get the logged-in guest's bookings.
      */
     public function index(Request $request)
@@ -25,7 +25,7 @@ class BookingController extends Controller
         $query = auth()->user()->bookings()
             ->with(['bookable', 'ticketTier']) // Eager load the Hotel/Event and the Tier
             ->latest();
-            
+
         // 2. Filter by Tab (Upcoming vs Past)
         $tab = $request->query('tab', 'upcoming');
 
@@ -44,64 +44,77 @@ class BookingController extends Controller
         $bookings = $query->paginate($request->query('limit', 10));
 
         return $this->paginatedResponse(
-            $bookings, 
+            $bookings,
             BookingResource::collection($bookings)
         );
     }
 
     public function storeEventBooking(Request $request)
-{
-    $request->validate([
-        'event_id' => 'required|exists:events,id',
-        'selections' => 'required|array|min:1',
-        'selections.*.ticket_id' => 'required|exists:event_tickets,id',
-        'selections.*.quantity' => 'required|integer|min:1|max:10',
-    ]);
+    {
+        $request->validate([
+            'event_id' => 'required|exists:events,id',
+            'selections' => 'required|array|min:1',
+            'selections.*.ticket_id' => 'required|exists:event_tickets,id',
+            'selections.*.quantity' => 'required|integer|min:1|max:10',
+        ]);
 
-    return DB::transaction(function () use ($request) {
-        $event = Event::findOrFail($request->event_id);
-        $allBookings = [];
-        $grandTotal = 0;
-        $bookingCode = 'BNS-E-' . strtoupper(Str::random(8));
+        return DB::transaction(function () use ($request) {
+            $event = Event::findOrFail($request->event_id);
+            $allBookings = [];
+            $grandTotal = 0;
+            $bookingCode = 'BNS-E-' . strtoupper(Str::random(8));
 
-        foreach ($request->selections as $selection) {
-            $ticketTier = EventTicket::lockForUpdate()->findOrFail($selection['ticket_id']);
-            
-            // 1. Inventory Check
-            if (($ticketTier->quantity - $ticketTier->sold) < $selection['quantity']) {
-                return response()->json(['message' => "Not enough {$ticketTier->name} tickets left."], 422);
+            foreach ($request->selections as $selection) {
+                $ticketTier = EventTicket::lockForUpdate()->findOrFail($selection['ticket_id']);
+
+                // 1. Inventory Check
+                if (($ticketTier->quantity - $ticketTier->sold) < $selection['quantity']) {
+                    return response()->json(['message' => "Not enough {$ticketTier->name} tickets left."], 422);
+                }
+
+                // 2. Pricing Logic (Server-side calculation)
+                $subtotal = $ticketTier->price * $selection['quantity'];
+                $serviceFee = $subtotal * 0.05; // 5% fee
+                $total = $subtotal + $serviceFee;
+                $grandTotal += $total;
+
+                // 3. Create Booking Record
+                $booking = Booking::create([
+                    'user_id' => auth()->id(),
+                    'bookable_id' => $event->id,
+                    'bookable_type' => Event::class,
+                    'event_ticket_id' => $ticketTier->id,
+                    'booking_code' => $bookingCode, // Shared code for the whole order
+                    'tickets_count' => $selection['quantity'],
+                    'total_price' => $total,
+                    'event_date' => $event->start_time,
+                    'status' => 'confirmed',
+                ]);
+
+                // 4. Deduct Inventory
+                $ticketTier->increment('sold', $selection['quantity']);
+
+                $allBookings[] = $booking;
             }
 
-            // 2. Pricing Logic (Server-side calculation)
-            $subtotal = $ticketTier->price * $selection['quantity'];
-            $serviceFee = $subtotal * 0.05; // 5% fee
-            $total = $subtotal + $serviceFee;
-            $grandTotal += $total;
+            return $this->successResponse([
+                'order_code' => $bookingCode,
+                'total_paid' => $grandTotal,
+                'items' => $allBookings
+            ], 'Tickets booked successfully!');
+        });
 
-            // 3. Create Booking Record
-            $booking = Booking::create([
-                'user_id' => auth()->id(),
-                'bookable_id' => $event->id,
-                'bookable_type' => Event::class,
-                'event_ticket_id' => $ticketTier->id,
-                'booking_code' => $bookingCode, // Shared code for the whole order
-                'tickets_count' => $selection['quantity'],
-                'total_price' => $total,
-                'event_date' => $event->start_time,
-                'status' => 'confirmed',
-            ]);
+    }
+    public function show($id)
+    {
+        // 1. Fetch the booking but ensure it belongs to the logged-in user
+        // We eager load 'bookable' (Hotel/Event) and 'ticketTier'
+        $booking = auth()->user()->bookings()
+            ->with(['bookable.images', 'ticketTier'])
+            ->findOrFail($id);
 
-            // 4. Deduct Inventory
-            $ticketTier->increment('sold', $selection['quantity']);
-            
-            $allBookings[] = $booking;
-        }
+        // 2. Return using the resource
+        return $this->successResponse(new BookingResource($booking));
+    }
 
-        return $this->successResponse([
-            'order_code' => $bookingCode,
-            'total_paid' => $grandTotal,
-            'items' => $allBookings
-        ], 'Tickets booked successfully!');
-    });
-}
 }

@@ -36,6 +36,10 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureUserIsSuperAdmin::
     Route::post('guest/event/booking', [BookingController::class, 'storeEventBooking']);
 });
 
+Route::middleware('auth:sanctum')->prefix('guest')->group(function () {
+    Route::get('/bookings/{id}', [BookingController::class, 'show']);
+});
+
 Route::post('/register/guest', [RegisterController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 

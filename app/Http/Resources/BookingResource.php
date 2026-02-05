@@ -39,6 +39,9 @@ class BookingResource extends JsonResource
         
         'checkIn' => $this->check_in?->format('M d, Y • g:i A'),
         'checkOut' => $this->check_out?->format('M d, Y • g:i A'),
+        
+        // Created timestamp
+        'bookedAt' => $this->created_at->format('M d, Y'),
     ];
 }
 }
