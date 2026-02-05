@@ -9,7 +9,10 @@ class EventTicket extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['event_id', 'name', 'price', 'quantity', 'sold'];
+    protected $fillable = ['event_id', 'name', 'price', 'quantity', 'sold','features','is_popular'];
+    protected $casts = [
+    'features' => 'array', // <--- This prevents the QueryException
+];
 
     public function event()
     {

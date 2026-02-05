@@ -22,11 +22,13 @@ class VendorEventResource extends JsonResource
             'start_date' => $this->start_time?->format('Y-m-d H:i'),
             'end_date' => $this->end_time?->format('Y-m-d H:i'),
             'description'=>$this->description, 
+            'location' => $this->location,
+            'venue' => $this->venue,
             // Stats for Dashboard
             'total_capacity' => $this->total_capacity,
             'tickets_sold' => $this->tickets()->sum('sold'),
             'revenue' => (float) $this->bookings()->where('status', 'confirmed')->sum('total_price'),
-
+            'highlights'=>$this->highlights,
             // Relationships
             'category' => $this->category?->name,
             // 'tickets' => $this->tickets, // Includes tiers and prices
@@ -47,6 +49,8 @@ class VendorEventResource extends JsonResource
                                      ->whereIn('status', ['confirmed', 'completed'])
                                      ->exists(),
                 'sold_count' => $ticket->bookings()->count(),
+                'features' => $ticket->features ?? [], 
+
             ];
         }),
         ];

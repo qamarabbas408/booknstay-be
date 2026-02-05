@@ -6,6 +6,11 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponser; 
 use App\Http\Resources\BookingResource;
+use App\Models\Booking;
+use App\Models\Event;
+use App\Models\EventTicket;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class BookingController extends Controller
 {
@@ -43,4 +48,60 @@ class BookingController extends Controller
             BookingResource::collection($bookings)
         );
     }
+
+    public function storeEventBooking(Request $request)
+{
+    $request->validate([
+        'event_id' => 'required|exists:events,id',
+        'selections' => 'required|array|min:1',
+        'selections.*.ticket_id' => 'required|exists:event_tickets,id',
+        'selections.*.quantity' => 'required|integer|min:1|max:10',
+    ]);
+
+    return DB::transaction(function () use ($request) {
+        $event = Event::findOrFail($request->event_id);
+        $allBookings = [];
+        $grandTotal = 0;
+        $bookingCode = 'BNS-E-' . strtoupper(Str::random(8));
+
+        foreach ($request->selections as $selection) {
+            $ticketTier = EventTicket::lockForUpdate()->findOrFail($selection['ticket_id']);
+            
+            // 1. Inventory Check
+            if (($ticketTier->quantity - $ticketTier->sold) < $selection['quantity']) {
+                return response()->json(['message' => "Not enough {$ticketTier->name} tickets left."], 422);
+            }
+
+            // 2. Pricing Logic (Server-side calculation)
+            $subtotal = $ticketTier->price * $selection['quantity'];
+            $serviceFee = $subtotal * 0.05; // 5% fee
+            $total = $subtotal + $serviceFee;
+            $grandTotal += $total;
+
+            // 3. Create Booking Record
+            $booking = Booking::create([
+                'user_id' => auth()->id(),
+                'bookable_id' => $event->id,
+                'bookable_type' => Event::class,
+                'event_ticket_id' => $ticketTier->id,
+                'booking_code' => $bookingCode, // Shared code for the whole order
+                'tickets_count' => $selection['quantity'],
+                'total_price' => $total,
+                'event_date' => $event->start_time,
+                'status' => 'confirmed',
+            ]);
+
+            // 4. Deduct Inventory
+            $ticketTier->increment('sold', $selection['quantity']);
+            
+            $allBookings[] = $booking;
+        }
+
+        return $this->successResponse([
+            'order_code' => $bookingCode,
+            'total_paid' => $grandTotal,
+            'items' => $allBookings
+        ], 'Tickets booked successfully!');
+    });
+}
 }

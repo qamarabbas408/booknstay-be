@@ -44,4 +44,35 @@ class PublicEventController extends Controller
             EventResource::collection($events)
         );
     }
+
+    public function show($id)
+{
+    $event = Event::with(['category', 'tickets', 'images'])->findOrFail($id);
+
+    return $this->successResponse([
+        'id' => $event->id,
+        'title' => $event->title,
+        'location' => $event->location,
+        'venue' => $event->venue,
+        'date' => $event->start_time->format('F d, Y'),
+        'time' => $event->start_time->format('g:i A') . ' – ' . $event->end_time->format('g:i A'),
+        'image' => $event->images->where('is_primary', true)->first()?->image_path 
+                   ? asset('storage/' . $event->images->where('is_primary', true)->first()->image_path)
+                   : null,
+        'description' => $event->description,
+        'highlights' => $event->highlights ?? [],
+        'rating' => 4.8, // Calculated from reviews later
+        'attendees' => $event->bookings()->sum('tickets_count') . ' going',
+        'ticketTypes' => $event->tickets->map(fn($t) => [
+            'id' => $t->id,
+            'name' => $t->name,
+            'price' => (float) $t->price,
+            'available' => $t->quantity - $t->sold,
+            'soldOut' => ($t->quantity - $t->sold) <= 0,
+            'description' => $t->description,
+            'features' => $t->features ?? [],
+            'popular' => (bool) $t->is_popular
+        ])
+    ]);
+}
 }

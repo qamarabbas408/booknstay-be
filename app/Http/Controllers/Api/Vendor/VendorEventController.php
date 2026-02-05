@@ -34,19 +34,22 @@ class VendorEventController extends Controller
             // 'image' => 'nullable|image|max:5120', // 5MB Max
             'images' => 'required|array',
             'images.*' => 'image|mimes:jpeg,png,jpg|max:2048', // Each image max 2MB
+            'highlights' => 'nullable|array', // Validate as array
 
             // Nested Tickets Validation
             'tickets' => 'required|array|min:1',
             'tickets.*.name' => 'required|string',
             'tickets.*.price' => 'required|numeric|min:0',
             'tickets.*.quantity' => 'required|integer|min:1',
+
+            'tickets.*.features' => 'nullable|array', // Validate each ticket's features
         ]);
 
         return DB::transaction(function () use ($request) {
 
             // 1. Logic: Combine Start Date/Time and End Date/Time
-            $startFull = Carbon::parse($request->startDate.' '.$request->startTime);
-            $endFull = Carbon::parse($request->endDate.' '.$request->endTime);
+            $startFull = Carbon::parse($request->startDate . ' ' . $request->startTime);
+            $endFull = Carbon::parse($request->endDate . ' ' . $request->endTime);
 
             // 2. Business Logic Guard:
             // Ensure the full timestamp of END is after START
@@ -80,6 +83,8 @@ class VendorEventController extends Controller
                 'image_path' => $imagePath,
                 'visibility' => $request->visibility,
                 'status' => $request->status,
+                'highlights' => $request->highlights, // Laravel converts array to JSON automatically
+
             ]);
 
             // 2. Handle Multiple Images
@@ -100,6 +105,8 @@ class VendorEventController extends Controller
                     'name' => $ticket['name'],
                     'price' => $ticket['price'],
                     'quantity' => $ticket['quantity'],
+                    'features' => $ticket['features'] ?? [], // Save the features array
+
                 ]);
             }
 
@@ -163,25 +170,40 @@ class VendorEventController extends Controller
             'tickets.*.name' => 'required|string',
             'tickets.*.price' => 'required|numeric|min:0',
             'tickets.*.quantity' => 'required|integer|min:1',
+            'tickets.*.features' => 'nullable|array', // Validate ticket features
+            'highlights' => 'sometimes|nullable|array', // Validate highlights
+
         ]);
 
         return DB::transaction(function () use ($request, $event) {
 
             // 3. Prepare Data for Update
             $dataToUpdate = $request->only([
-                'title', 'description', 'category_id', 'venue', 'location', 'visibility', 'status',
+                'title',
+                'description',
+                'category_id',
+                'venue',
+                'location',
+                'visibility',
+                'status',
             ]);
+
+
+            if ($request->has('highlights')) {
+                $dataToUpdate['highlights'] = $request->highlights;
+            }
+
 
             // 4. Logic: Handle Date/Time Updates
             // If any part of the time changed, we rebuild the Carbon objects
             if ($request->hasAny(['startDate', 'startTime', 'endDate', 'endTime'])) {
                 $newStart = Carbon::parse(
-                    ($request->startDate ?? $event->start_time->format('Y-m-d')).' '.
+                    ($request->startDate ?? $event->start_time->format('Y-m-d')) . ' ' .
                     ($request->startTime ?? $event->start_time->format('H:i'))
                 );
 
                 $newEnd = Carbon::parse(
-                    ($request->endDate ?? $event->end_time->format('Y-m-d')).' '.
+                    ($request->endDate ?? $event->end_time->format('Y-m-d')) . ' ' .
                     ($request->endTime ?? $event->end_time->format('H:i'))
                 );
 

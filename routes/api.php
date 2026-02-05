@@ -28,12 +28,12 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureUserIsSuperAdmin::
     Route::post('/vendor/event', [VendorEventController::class, 'store']);
 
     Route::get('vendor/events', [VendorEventController::class, 'index']);
-    Route::put('vendor/event/{event}', [VendorEventController::class, 'update']); //edit 
+    Route::put('vendor/event/edit/{event}', [VendorEventController::class, 'update']); //edit 
     Route::delete('vendor/event/{event}', [VendorEventController::class, 'destroy']);
     Route::get('vendor/event/{event}', [VendorEventController::class, 'show']); // show single event by id 
   
     Route::get('guest/bookings', [BookingController::class, 'index']);
-    
+    Route::post('guest/event/booking', [BookingController::class, 'storeEventBooking']);
 });
 
 Route::post('/register/guest', [RegisterController::class, 'register']);
@@ -51,3 +51,4 @@ Route::get('/amenities', [AmentiyController::class, 'index']);
 
 Route::get('/events', [PublicEventController::class, 'index']);
 Route::get('/event-categories', [PublicEventController::class, 'getCategories']);
+Route::get('/event/{event}', [PublicEventController::class, 'show']);

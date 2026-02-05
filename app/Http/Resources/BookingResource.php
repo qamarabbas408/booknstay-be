@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Str;
 
 class BookingResource extends JsonResource
 {
@@ -29,10 +30,9 @@ class BookingResource extends JsonResource
             : $this->bookable->images->where('is_primary', true)->first()?->image_path,
         
         // Custom string logic for your UI
-        'guestsOrTickets' => $isEvent 
-            ? "{$this->tickets_count} tickets • " . ($this->ticketTier->name ?? 'Standard')
-            : "{$this->guests_count} guests, {$this->rooms_count} room" . ($this->rooms_count > 1 ? 's' : ''),
-
+         'guestsOrTickets' => $isEvent 
+            ? $this->tickets_count . ' ' . Str::plural('ticket', $this->tickets_count) . ' • ' . ($this->ticketTier?->name ?? 'Standard')
+            : $this->guests_count . ' guests, ' . $this->rooms_count . ' rooms',
         'dates' => $isEvent 
             ? $this->event_date?->format('M d, Y • g:i A')
             : $this->check_in?->format('M d') . ' – ' . $this->check_out?->format('M d, Y'),

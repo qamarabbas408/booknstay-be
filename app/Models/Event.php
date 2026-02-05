@@ -26,6 +26,7 @@ class Event extends Model
         'is_featured',       // UI badge
         'is_trending',       // UI pulse animation
         'visibility',
+        'highlights'
 
     ];
 
@@ -36,6 +37,7 @@ class Event extends Model
 
         'is_featured' => 'boolean',
         'is_trending' => 'boolean',
+        'highlights'=> 'array'
     ];
 
     /**
