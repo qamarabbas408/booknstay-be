@@ -7,12 +7,46 @@ use App\Http\Resources\HotelResource;
 use App\Models\Hotel;
 use App\Traits\ApiResponser;
 use Illuminate\Http\Request; // Import the trait
-
+use App\Models\Booking;
 class PublicHotelController extends Controller
 {
     //
     use ApiResponser; // Use the trait here
 
+public function checkAvailability(Request $request, $id)
+{
+    // 1. Validate Input
+    $request->validate([
+        'check_in' => 'required|date|after:yesterday',
+        'check_out' => 'required|date|after:check_in',
+    ]);
+
+    $hotel = Hotel::findOrFail($id);
+    $checkIn = \Carbon\Carbon::parse($request->check_in);
+    $checkOut = \Carbon\Carbon::parse($request->check_out);
+
+    // 2. Calculate Occupied Rooms
+    // Logic: Find all bookings where (Start < RequestedEnd) AND (End > RequestedStart)
+    $occupiedRooms = Booking::where('bookable_type', Hotel::class)
+        ->where('bookable_id', $hotel->id)
+        ->whereIn('status', ['confirmed', 'completed'])
+        ->where(function ($query) use ($checkIn, $checkOut) {
+            $query->where('check_in', '<', $checkOut)
+                  ->where('check_out', '>', $checkIn);
+        })
+        ->sum('rooms_count');
+
+    // 3. Calculate Availability
+    $availableRooms = max(0, $hotel->total_rooms - $occupiedRooms);
+
+    return $this->successResponse([
+        'hotel_id' => $hotel->id,
+        'total_rooms' => $hotel->total_rooms,
+        'occupied_rooms' => (int)$occupiedRooms,
+        'available_rooms' => (int)$availableRooms,
+        'is_available' => $availableRooms > 0,
+    ], 'Availability checked successfully');
+}
     public function index(Request $request)
     {
         // 1. Start the query on Active hotels
@@ -79,4 +113,17 @@ class PublicHotelController extends Controller
             HotelResource::collection($hotels)
         );
     }
+
+
+    public function show($id)
+    {
+        // Eager load everything needed for the UI
+        $hotel = Hotel::with(['images', 'amenities', 'reviews.user'])
+            ->where('status', 'active')
+            ->findOrFail($id);
+            
+        return $this->successResponse(new HotelResource($hotel));
+    }
+
+    
 }

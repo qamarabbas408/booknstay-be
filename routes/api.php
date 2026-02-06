@@ -34,6 +34,8 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureUserIsSuperAdmin::
   
     Route::get('guest/bookings', [BookingController::class, 'index']);
     Route::post('guest/event/booking', [BookingController::class, 'storeEventBooking']);
+    Route::post('guest/hotel/booking', [BookingController::class, 'storeHotelBooking']);
+
 });
 
 Route::middleware('auth:sanctum')->prefix('guest')->group(function () {
@@ -49,6 +51,9 @@ Route::post('/register/vendor', [RegisterController::class, 'registerVendor']);
 
 // Public route - anyone can see hotels
 Route::get('/hotels', [PublicHotelController::class, 'index']);
+Route::get('/hotel/{hotel}', [PublicHotelController::class, 'show']);
+// routes/api.php
+Route::get('/hotel/{id}/availability', [PublicHotelController::class, 'checkAvailability']);
 
 // Public route - anyone can see amenities
 Route::get('/amenities', [AmentiyController::class, 'index']);

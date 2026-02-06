@@ -8,6 +8,7 @@ use App\Traits\ApiResponser;
 use App\Http\Resources\BookingResource;
 use App\Models\Booking;
 use App\Models\Event;
+use App\Models\Hotel;
 use App\Models\EventTicket;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -115,6 +116,75 @@ class BookingController extends Controller
 
         // 2. Return using the resource
         return $this->successResponse(new BookingResource($booking));
+    }
+
+    public function storeHotelBooking(Request $request)
+    {
+        $request->validate([
+            'hotel_id' => 'required|exists:hotels,id',
+            'check_in' => 'required|date|after:yesterday',
+            'check_out' => 'required|date|after:check_in', // This forces at least +1 day
+            'guests_count' => 'required|integer|min:1',
+        ]);
+
+        return DB::transaction(function () use ($request) {
+            $hotel = Hotel::findOrFail($request->hotel_id);
+
+            // 1. Calculate Nights
+            $checkIn = \Carbon\Carbon::parse($request->check_in);
+            $checkOut = \Carbon\Carbon::parse($request->check_out);
+            $nights = $checkIn->diffInDays($checkOut);
+
+            // 2. Business Logic: Even if 0 days difference, charge for at least 1 night
+            $billableNights = max(1, $nights);
+            // 2. Pricing Logic
+            $subtotal = $hotel->base_price * $billableNights;
+
+            $serviceFee = $subtotal * 0.10; // 10% marketplace fee
+            $totalPrice = $subtotal + $serviceFee;
+
+
+            // 1. Find all bookings that overlap with the requested dates
+            $overlappingBookingsCount = Booking::where('bookable_type', Hotel::class)
+                ->where('bookable_id', $hotel->id)
+                ->whereIn('status', ['confirmed', 'completed'])
+                ->where(function ($query) use ($checkIn, $checkOut) {
+                    $query->whereBetween('check_in', [$checkIn, $checkOut->subMinute()])
+                        ->orWhereBetween('check_out', [$checkIn->addMinute(), $checkOut])
+                        ->orWhere(function ($q) use ($checkIn, $checkOut) {
+                            $q->where('check_in', '<=', $checkIn)
+                                ->where('check_out', '>=', $checkOut);
+                        });
+                })
+                ->sum('rooms_count'); // Total rooms already taken
+
+
+            // 2. Inventory Guard
+            $roomsRequested = $request->rooms_count ?? 1;
+            $roomsAvailable = $hotel->total_rooms - $overlappingBookingsCount;
+
+            if ($roomsAvailable < $roomsRequested) {
+                return response()->json([
+                    'message' => "Sold out! Only {$roomsAvailable} rooms left for these dates."
+                ], 422);
+            }
+
+            // 3. Create Booking (Using the polymorphic table)
+            $booking = Booking::create([
+                'user_id' => auth()->id(),
+                'bookable_id' => $hotel->id,
+                'bookable_type' => Hotel::class,
+                'booking_code' => 'BNS-H-' . strtoupper(Str::random(8)),
+                'check_in' => $checkIn,
+                'check_out' => $checkOut,
+                'guests_count' => $request->guests_count,
+                'rooms_count' => $roomsRequested, // Default for now
+                'total_price' => $totalPrice,
+                'status' => 'confirmed',
+            ]);
+
+            return $this->successResponse($booking, 'Hotel reserved successfully!');
+        });
     }
 
 }

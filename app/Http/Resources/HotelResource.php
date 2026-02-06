@@ -18,6 +18,8 @@ class HotelResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'location' => $this->city.', '.$this->country,
+            'descripton' => $this->description,
+            // 'pricePerNight
             'pricePerNight' => (float) $this->base_price,
             // We take the first image or a placeholder
             'image' => $this->images->where('is_primary', true)->first()?->image_path
