@@ -16,7 +16,8 @@ class Booking extends Model
         'user_id', 'bookable_id', 'bookable_type', 'booking_code',
         'check_in', 'check_out', 'event_date', 'guests_count',
         'rooms_count', 'tickets_count', 'total_price', 'status',
-        'event_ticket_id',
+        'event_ticket_id',    'room_type_id', // <--- Add this
+
     ];
       protected $casts = [
         'check_in'   => 'datetime',
@@ -52,5 +53,9 @@ class Booking extends Model
             $prefix = ($booking->bookable_type === 'App\Models\Hotel') ? 'H' : 'E';
             $booking->booking_code = 'BNS-'.$prefix.'-'.strtoupper(Str::random(6));
         });
+    }
+    public function roomType()
+    {
+        return $this->belongsTo(RoomType::class);
     }
 }

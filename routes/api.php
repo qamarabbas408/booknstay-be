@@ -29,20 +29,29 @@ use App\Http\Controllers\Api\Vendor\VendorRoomTypeController;
 
 Route::prefix('v1')->group(function () {
     // Protected Admin Routes
-    
+
     Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureUserIsSuperAdmin::class])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::post('/vendor/event', [VendorEventController::class, 'store']);
 
         Route::get('vendor/events', [VendorEventController::class, 'index']);
-        Route::put('vendor/event/edit/{event}', [VendorEventController::class, 'update']); //edit 
+        Route::put('vendor/event/edit/{event}', [VendorEventController::class, 'update']); //edit
         Route::delete('vendor/event/{event}', [VendorEventController::class, 'destroy']);
-        Route::get('vendor/event/{event}', [VendorEventController::class, 'show']); // show single event by id 
+        Route::get('vendor/event/{event}', [VendorEventController::class, 'show']); // show single event by id
         Route::get('vendor/hotels', [VendorHotelController::class, 'index']);
 
         Route::get('guest/bookings', [BookingController::class, 'index']);
         Route::post('guest/event/booking', [BookingController::class, 'storeEventBooking']);
         Route::post('guest/hotel/booking', [BookingController::class, 'storeHotelBooking']);
+
+
+        // Manage Rooms for a specific Hotel
+        Route::get('/hotels/{hotel}/room-types', [VendorRoomTypeController::class, 'index']);
+        Route::post('/hotels/{hotel}/room-types', [VendorRoomTypeController::class, 'store']);
+
+        // Specific Room Actions
+        Route::put('/room-types/{roomType}', [VendorRoomTypeController::class, 'update']);
+        Route::delete('/room-types/{roomType}', [VendorRoomTypeController::class, 'destroy']);
 
     });
 
@@ -50,6 +59,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/bookings/{id}', [BookingController::class, 'show']);
     });
 
+//    PUBLIC ROUTES
     Route::post('/register/guest', [RegisterController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
 
@@ -71,13 +81,6 @@ Route::prefix('v1')->group(function () {
     Route::get('/event/{event}', action: [PublicEventController::class, 'show']);
 
 
-     // Manage Rooms for a specific Hotel
-    Route::get('/hotels/{hotel}/room-types', [VendorRoomTypeController::class, 'index']);
-    Route::post('/hotels/{hotel}/room-types', [VendorRoomTypeController::class, 'store']);
-    
-    // Specific Room Actions
-    Route::put('/room-types/{roomType}', [VendorRoomTypeController::class, 'update']);
-    Route::delete('/room-types/{roomType}', [VendorRoomTypeController::class, 'destroy']);
 
 });
 

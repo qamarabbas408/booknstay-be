@@ -7,6 +7,7 @@ use App\Models\RoomType;
 use App\Http\Resources\Vendor\RoomTypeResource;
 use App\Traits\ApiResponser;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class VendorRoomTypeController extends Controller
 {
@@ -28,25 +29,48 @@ class VendorRoomTypeController extends Controller
     // 2. Create a new room tier
     public function store(Request $request, Hotel $hotel)
     {
+        // 1. Security Check
         if ($hotel->user_id !== auth()->id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
+        // 2. Validation
+        // The '*.' syntax tells Laravel to validate every item in the root-level array
         $request->validate([
-            'name' => 'required|string|max:255',
-            'base_price' => 'required|numeric|min:0',
-            'max_occupancy' => 'required|integer|min:1',
-            'total_inventory' => 'required|integer|min:1',
-            'description' => 'nullable|string'
+            '*.name' => 'required|string|max:100',
+            '*.base_price' => 'required|numeric|min:0',
+            '*.max_occupancy' => 'required|integer|min:1',
+            '*.total_inventory' => 'required|integer|min:1',
+            '*.description' => 'nullable|string',
         ]);
 
-        $roomType = $hotel->roomTypes()->create($request->all());
+        // 3. Database Transaction
+        return DB::transaction(function () use ($request, $hotel) {
+            $createdTiers = [];
 
-        return $this->successResponse(
-            new RoomTypeResource($roomType), 
-            'Room tier added successfully', 
-            201
-        );
+            // 4. Loop through the array of rooms sent from React
+            foreach ($request->all() as $roomData) {
+
+                // Optional: Check if this name already exists for this hotel to avoid duplicates
+                $exists = $hotel->roomTypes()->where('name', $roomData['name'])->exists();
+
+                if (!$exists) {
+                    $createdTiers[] = $hotel->roomTypes()->create([
+                        'name' => $roomData['name'],
+                        'base_price' => $roomData['base_price'],
+                        'max_occupancy' => $roomData['max_occupancy'],
+                        'total_inventory' => $roomData['total_inventory'],
+                        'description' => $roomData['description'] ?? null,
+                    ]);
+                }
+            }
+
+            return $this->successResponse(
+                $createdTiers,
+                count($createdTiers) . ' room tiers added successfully',
+                201
+            );
+        });
     }
 
     // 3. Update a room tier

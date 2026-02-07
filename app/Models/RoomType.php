@@ -9,7 +9,7 @@ class RoomType extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['hotel_id', 'name', 'description', 'base_price', 'max_occupancy', 'total_inventory'];
+    protected $fillable = ['hotel_id', 'name', 'description', 'base_price', 'max_occupancy', 'total_inventory','description'];
     public function hotel()
     {
         return $this->belongsTo(Hotel::class);
