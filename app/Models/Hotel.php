@@ -58,4 +58,19 @@ class Hotel extends Model
     {
         return $this->morphMany(Booking::class, 'bookable');
     }
+
+    public function vendor()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function roomTypes()
+    {
+        return $this->hasMany(RoomType::class);
+    }
+
+    public function location()
+    {
+        return $this->morphOne(Location::class, 'locatable');
+    }
 }

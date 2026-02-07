@@ -37,7 +37,7 @@ class Event extends Model
 
         'is_featured' => 'boolean',
         'is_trending' => 'boolean',
-        'highlights'=> 'array'
+        'highlights' => 'array'
     ];
 
     /**
@@ -88,7 +88,13 @@ class Event extends Model
         return $this->hasMany(EventTicket::class);
     }
 
-    public function images() {
+    public function images()
+    {
         return $this->hasMany(EventImage::class);
+    }
+
+    public function location()
+    {
+        return $this->morphOne(Location::class, 'locatable');
     }
 }

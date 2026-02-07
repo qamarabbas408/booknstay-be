@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Auth\V2\RegistrationController as V2RegistrationController;
 use App\Http\Controllers\Api\Vendor\VendorStatusController;
+use App\Http\Controllers\Api\Vendor\VendorHotelController;
+use App\Http\Controllers\Api\Vendor\VendorRoomTypeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,6 +29,7 @@ use App\Http\Controllers\Api\Vendor\VendorStatusController;
 
 Route::prefix('v1')->group(function () {
     // Protected Admin Routes
+    
     Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureUserIsSuperAdmin::class])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::post('/vendor/event', [VendorEventController::class, 'store']);
@@ -35,6 +38,7 @@ Route::prefix('v1')->group(function () {
         Route::put('vendor/event/edit/{event}', [VendorEventController::class, 'update']); //edit 
         Route::delete('vendor/event/{event}', [VendorEventController::class, 'destroy']);
         Route::get('vendor/event/{event}', [VendorEventController::class, 'show']); // show single event by id 
+        Route::get('vendor/hotels', [VendorHotelController::class, 'index']);
 
         Route::get('guest/bookings', [BookingController::class, 'index']);
         Route::post('guest/event/booking', [BookingController::class, 'storeEventBooking']);
@@ -66,13 +70,23 @@ Route::prefix('v1')->group(function () {
     Route::get('/event-categories', [PublicEventController::class, 'getCategories']);
     Route::get('/event/{event}', action: [PublicEventController::class, 'show']);
 
+
+     // Manage Rooms for a specific Hotel
+    Route::get('/hotels/{hotel}/room-types', [VendorRoomTypeController::class, 'index']);
+    Route::post('/hotels/{hotel}/room-types', [VendorRoomTypeController::class, 'store']);
+    
+    // Specific Room Actions
+    Route::put('/room-types/{roomType}', [VendorRoomTypeController::class, 'update']);
+    Route::delete('/room-types/{roomType}', [VendorRoomTypeController::class, 'destroy']);
+
 });
 
 //v2
 Route::prefix('v2')->group(function () {
     Route::post('/register/vendor', action: [V2RegistrationController::class, 'registerVendor']);
     Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureUserIsSuperAdmin::class])->group(function () {
-        Route::get('/approval-status', action: [VendorStatusController::class, 'check']);
+    Route::get('/approval-status', action: [VendorStatusController::class, 'check']);
+    Route::post('/vendor/hotel', action: [VendorHotelController::class, 'store']);
 
 
     });
