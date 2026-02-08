@@ -16,7 +16,7 @@ class VendorHotelController extends Controller
     {
         // 1. Start the query on the authenticated vendor's hotels
         $query = auth()->user()->hotels()
-            ->with(['images'])
+            ->with(['images','roomTypes','location'])
             ->withMin('roomTypes', 'base_price') // Cheapest room price
             ->withCount([
                 'bookings' => function ($q) {
