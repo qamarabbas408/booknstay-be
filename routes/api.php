@@ -14,6 +14,7 @@ use App\Http\Controllers\Auth\V2\RegistrationController as V2RegistrationControl
 use App\Http\Controllers\Api\Vendor\VendorStatusController;
 use App\Http\Controllers\Api\Vendor\VendorHotelController;
 use App\Http\Controllers\Api\Vendor\VendorRoomTypeController;
+use App\Http\Controllers\Api\V2\BookingController as V2BookingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -53,6 +54,9 @@ Route::prefix('v1')->group(function () {
         Route::put('/room-types/{roomType}', [VendorRoomTypeController::class, 'update']);
         Route::delete('/room-types/{roomType}', [VendorRoomTypeController::class, 'destroy']);
 
+        // get one room
+        Route::get('/vendor/room-types/{roomType}', [VendorRoomTypeController::class, 'show']);
+
     });
 
     Route::middleware('auth:sanctum')->prefix('guest')->group(function () {
@@ -90,6 +94,7 @@ Route::prefix('v2')->group(function () {
     Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureUserIsSuperAdmin::class])->group(function () {
     Route::get('/approval-status', action: [VendorStatusController::class, 'check']);
     Route::post('/vendor/hotel', action: [VendorHotelController::class, 'store']);
+    Route::post('guest/hotel/booking', [V2BookingController::class, 'storeHotelBooking']);
 
 
     });

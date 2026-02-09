@@ -12,7 +12,29 @@ use Illuminate\Support\Facades\DB;
 class VendorRoomTypeController extends Controller
 {
     use ApiResponser;
+    /**
+     * Get the details of a specific room tier.
+     */
+    public function show(RoomType $roomType)
+    {
+        // 1. Security Check: Does the authenticated vendor own the hotel this room belongs to?
+        if ($roomType->hotel->user_id !== auth()->id()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized access to this room tier.'
+            ], 403);
+        }
 
+        // 2. Load the parent hotel relationship (optional, but helpful for UI breadcrumbs)
+        $roomType->load('hotel');
+
+        // 3. Return using the existing RoomTypeResource
+        // This resource already includes: id, type, price, inventory, and the 'is_locked' status
+        return $this->successResponse(
+            new RoomTypeResource($roomType),
+            'Room tier details retrieved successfully'
+        );
+    }
     // 1. List all rooms for a specific hotel
     public function index(Hotel $hotel)
     {
