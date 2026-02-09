@@ -6,12 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Hotel;
 use App\Models\RoomType;
+use App\Traits\ApiResponser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class BookingController extends Controller
 {
     //
+    use ApiResponser;
+
 
     public function storeHotelBooking(Request $request)
     {

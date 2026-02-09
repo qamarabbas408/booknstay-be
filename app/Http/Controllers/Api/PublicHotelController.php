@@ -50,7 +50,13 @@ public function checkAvailability(Request $request, $id)
     public function index(Request $request)
     {
         // 1. Start the query on Active hotels
-        $query = Hotel::where('status', 'active')->with(['images', 'amenities', 'reviews']);
+//        $query = Hotel::where('status', 'active')->with(['images', 'amenities', 'reviews']);
+
+        $query = Hotel::where('status', 'active')
+            ->with(['location', 'images', 'amenities','reviews','roomTypes' => function($q) {
+                // Eager load only active room tiers
+                $q->where('status', 'active');
+            }]);
 
         // 2. SEARCH (By Name or City)
         if ($request->has('search')) {
@@ -121,9 +127,9 @@ public function checkAvailability(Request $request, $id)
         $hotel = Hotel::with(['images', 'amenities', 'reviews.user'])
             ->where('status', 'active')
             ->findOrFail($id);
-            
+
         return $this->successResponse(new HotelResource($hotel));
     }
 
-    
+
 }
