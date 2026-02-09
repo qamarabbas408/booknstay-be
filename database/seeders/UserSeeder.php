@@ -13,16 +13,7 @@ class UserSeeder extends Seeder
         $password = Hash::make('admin123');
         $interests = Interest::all();
 
-        // --- 1. SUPER ADMIN ---
-        User::create([
-            'name' => 'System Admin',
-            'email' => 'admin@booknstay.com',
-            'password' => $password,
-            'role' => 'super_admin',
-            'status' => 'active',
-        ]);
-
-        // --- 2. EXISTING GUESTS ---
+        // --- 2. EXISTING GUESTS EXAMPLE ---
         $guests = [
             ['name' => 'Alice Traveler', 'email' => 'alice@gmail.com'],
             ['name' => 'Bob Explorer', 'email' => 'bob@gmail.com'],

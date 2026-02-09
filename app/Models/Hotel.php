@@ -22,6 +22,8 @@ class Hotel extends Model
         'status',
         'base_price',
         'star_rating',
+        'tax_rate',    // Added
+        'service_fee', // Added
     ];
 
     public function owner()
@@ -72,5 +74,22 @@ class Hotel extends Model
     public function location()
     {
         return $this->morphOne(Location::class, 'locatable');
+    }
+
+    /**
+     * Logic: Calculate the total price of the cheapest room including taxes/fees
+     */
+    public function getStartingPriceAttribute()
+    {
+        // 1. Find the cheapest active room
+        $cheapestBase = $this->roomTypes()->where('status', 'active')->min('base_price');
+
+        if (!$cheapestBase) return 0;
+
+        // 2. Calculate Tax
+        $taxAmount = ($cheapestBase * ($this->tax_rate / 100));
+
+        // 3. Return Total (Base + Tax + Service Fee)
+        return (float) ($cheapestBase + $taxAmount + $this->service_fee);
     }
 }

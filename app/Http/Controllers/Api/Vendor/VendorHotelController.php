@@ -87,6 +87,10 @@ class VendorHotelController extends Controller
             // NEW: Amenities (Array of IDs from your master list)
             'amenities' => 'required|array|min:1',
             'amenities.*' => 'exists:amenities,id',
+
+            // NEW Financial Fields
+            'tax_rate' => 'required|numeric|between:0,100', // e.g., 12.5
+            'service_fee' => 'required|numeric|min:0',      // e.g., 10.00
         ]);
 
         return DB::transaction(function () use ($request) {
@@ -96,6 +100,8 @@ class VendorHotelController extends Controller
                 'name' => $request->name,
                 'description' => $request->description,
                 'star_rating' => $request->star_rating,
+                'tax_rate' => $request->tax_rate,       // Saved here
+                'service_fee' => $request->service_fee, // Saved here
                 'status' => 'pending',
             ]);
 

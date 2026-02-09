@@ -15,14 +15,22 @@ class HotelResource extends JsonResource
     public function toArray(Request $request): array
     {
         $mainImage = $this->images->where('is_primary', true)->first() ?? $this->images->first();
+        $cheapestBase = (float) $this->roomTypes()->where('status', 'active')->min('base_price');
 
         return [
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
             'stars' => $this->star_rating,
-            'pricePerNight' => (float) $this->base_price,
-
+//            'pricePerNight' => (float) $this->base_price,
+            'pricePerNight' => $cheapestBase,
+            'totalStartingPrice' => $this->starting_price,
+            'pricing_details' => [
+                'base_price' => $cheapestBase,
+                'tax_percentage' => (float) $this->tax_rate,
+                'service_fee' => (float) $this->service_fee,
+                'currency' => 'USD'
+            ],
             // 1. Location details
             'location' => [
                 'city' => $this->location?->city,

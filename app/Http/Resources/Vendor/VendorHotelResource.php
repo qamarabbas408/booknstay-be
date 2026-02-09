@@ -21,7 +21,6 @@ class VendorHotelResource extends JsonResource
             'image' => $this->images->where('is_primary', true)->first()
                 ? $this->images->where('is_primary', true)->first()->image_path
                 : null,
-
             'thumbnail' => $this->images->where('is_primary', true)->first()?->image_path ?? $this->images->first()?->image_path,
             // We use the RoomTypeResource to ensure standard formatting
             'room_tiers' => RoomTypeResource::collection($this->whenLoaded('roomTypes')),

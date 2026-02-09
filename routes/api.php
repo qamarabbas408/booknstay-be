@@ -33,29 +33,28 @@ Route::prefix('v1')->group(function () {
 
     Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureUserIsSuperAdmin::class])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
-        Route::post('/vendor/event', [VendorEventController::class, 'store']);
 
+        //EVENTS
+        Route::post('/vendor/event', [VendorEventController::class, 'store']);
         Route::get('vendor/events', [VendorEventController::class, 'index']);
         Route::put('vendor/event/edit/{event}', [VendorEventController::class, 'update']); //edit
         Route::delete('vendor/event/{event}', [VendorEventController::class, 'destroy']);
         Route::get('vendor/event/{event}', [VendorEventController::class, 'show']); // show single event by id
+
+        // HOTELS
         Route::get('vendor/hotels', [VendorHotelController::class, 'index']);
 
+        // BOOKINGS
         Route::get('guest/bookings', [BookingController::class, 'index']);
         Route::post('guest/event/booking', [BookingController::class, 'storeEventBooking']);
         Route::post('guest/hotel/booking', [BookingController::class, 'storeHotelBooking']);
 
-
-        // Manage Rooms for a specific Hotel
+        // ROOM TIERS
         Route::get('/hotels/{hotel}/room-types', [VendorRoomTypeController::class, 'index']);
         Route::post('/hotels/{hotel}/room-types', [VendorRoomTypeController::class, 'store']);
-
-        // Specific Room Actions
         Route::put('/room-types/{roomType}', [VendorRoomTypeController::class, 'update']);
         Route::delete('/room-types/{roomType}', [VendorRoomTypeController::class, 'destroy']);
-
-        // get one room
-        Route::get('/vendor/room-types/{roomType}', [VendorRoomTypeController::class, 'show']);
+        Route::get('/vendor/room-types/{roomType}', [VendorRoomTypeController::class, 'show']); //get one room
 
     });
 
@@ -88,15 +87,18 @@ Route::prefix('v1')->group(function () {
 
 });
 
-//v2
+//V2 api/v2
 Route::prefix('v2')->group(function () {
     Route::post('/register/vendor', action: [V2RegistrationController::class, 'registerVendor']);
+
     Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureUserIsSuperAdmin::class])->group(function () {
     Route::get('/approval-status', action: [VendorStatusController::class, 'check']);
     Route::post('/vendor/hotel', action: [VendorHotelController::class, 'store']);
-    Route::post('guest/hotel/booking', [V2BookingController::class, 'storeHotelBooking']);
+//    Route::post('guest/hotel/booking', [V2BookingController::class, 'storeHotelBooking']);
+    });
 
-
+    Route::middleware('auth:sanctum')->prefix('guest')->group(function () {
+        Route::post('guest/hotel/booking', [V2BookingController::class, 'storeHotelBooking']);
     });
 
 });

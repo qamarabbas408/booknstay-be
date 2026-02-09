@@ -53,6 +53,7 @@ public function checkAvailability(Request $request, $id)
 //        $query = Hotel::where('status', 'active')->with(['images', 'amenities', 'reviews']);
 
         $query = Hotel::where('status', 'active')
+            ->has('roomTypes') // atleast have one room tier
             ->with(['location', 'images', 'amenities','reviews','roomTypes' => function($q) {
                 // Eager load only active room tiers
                 $q->where('status', 'active');
