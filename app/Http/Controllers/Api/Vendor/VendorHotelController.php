@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Vendor;
 
 use App\Http\Controllers\Controller;
+use App\Models\Hotel;
 use App\Traits\ApiResponser;
 use Illuminate\Http\Request;
 use App\Http\Resources\Vendor\VendorHotelResource;
@@ -135,5 +136,103 @@ class VendorHotelController extends Controller
                 'Hotel registered with location data!'
             );
         });
+    }
+
+    public function update(Request $request, Hotel $hotel)
+    {
+        // 1. Security: Ensure the vendor owns this hotel
+        if ($hotel->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized access.'], 403);
+        }
+
+        // 2. Validation
+        $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'description' => 'sometimes|required|string|min:50',
+            'star_rating' => 'sometimes|required|integer|min:3|max:5',
+            'tax_rate' => 'sometimes|required|numeric|between:0,100',
+            'service_fee' => 'sometimes|required|numeric|min:0',
+            'status' => 'sometimes|required|in:active,inactive,pending',
+
+            // Location fields
+            'country' => 'sometimes|required|string',
+            'city' => 'sometimes|required|string',
+            'full_address' => 'sometimes|required|string',
+            'latitude' => 'sometimes|nullable|numeric',
+            'longitude' => 'sometimes|nullable|numeric',
+
+            // Amenities (Syncing)
+            'amenities' => 'sometimes|required|array',
+            'amenities.*' => 'exists:amenities,id',
+
+            // Optional Gallery additions
+            'images' => 'sometimes|array|min:1',
+            'images.*' => 'image|mimes:jpeg,png,jpg|max:5120',
+        ]);
+
+        return DB::transaction(function () use ($request, $hotel) {
+
+            // 3. Update core Hotel fields
+            $hotel->update($request->only([
+                'name', 'description', 'star_rating', 'tax_rate', 'service_fee', 'status'
+            ]));
+
+            // 4. Update Location (if provided)
+            if ($request->hasAny(['country', 'city', 'full_address', 'latitude', 'longitude'])) {
+                $hotel->location()->update($request->only([
+                    'country', 'city', 'full_address', 'zip_code', 'latitude', 'longitude'
+                ]));
+            }
+
+            // 5. Update Amenities (Syncing)
+            // sync() automatically removes old amenities and adds new ones
+            if ($request->has('amenities')) {
+                $hotel->amenities()->sync($request->amenities);
+            }
+
+            // 6. Handle New Images (Optional addition)
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $image) {
+                    $path = $image->store('hotels', 'public');
+                    $hotel->images()->create([
+                        'image_path' => $path,
+                        'is_primary' => false, // New uploads are gallery images
+                    ]);
+                }
+            }
+
+            return $this->successResponse(
+                new VendorHotelResource($hotel->load('location', 'amenities', 'images')),
+                'Hotel updated successfully!'
+            );
+        });
+    }
+
+    /**
+     * Get full details of a specific hotel owned by the vendor.
+     */
+    public function show(Hotel $hotel)
+    {
+        // 1. Security Check: Ensure the logged-in vendor owns this hotel
+        if ($hotel->user_id !== auth()->id()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized access to this property.'
+            ], 403);
+        }
+
+        // 2. Eager Load everything needed for the Edit UI
+        $hotel->load([
+            'location',
+            'amenities',
+            'images',
+            'roomTypes' // So the vendor can see their rooms inside the hotel view
+        ]);
+
+        // 3. Return using the Vendor Resource
+        return $this->successResponse(
+            new VendorHotelResource($hotel),
+            'Hotel details retrieved successfully'
+        );
     }
 }

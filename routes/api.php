@@ -43,6 +43,8 @@ Route::prefix('v1')->group(function () {
 
         // HOTELS
         Route::get('vendor/hotels', [VendorHotelController::class, 'index']);
+        Route::put('/vendor/hotels/{hotel}', [VendorHotelController::class, 'update']);
+        Route::get('vendor/hotels/{hotel}', [VendorHotelController::class, 'show']);
 
         // BOOKINGS
         Route::get('guest/bookings', [BookingController::class, 'index']);
