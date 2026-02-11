@@ -235,4 +235,45 @@ class VendorHotelController extends Controller
             'Hotel details retrieved successfully'
         );
     }
+
+
+    /**
+     * Delete a specific hotel property.
+     */
+    public function destroy(Hotel $hotel)
+    {
+        // 1. Security Check: Ensure the vendor owns this hotel
+        if ($hotel->user_id !== auth()->id()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized. You do not own this property.'
+            ], 403);
+        }
+
+        // 2. Business Logic Guard: Check for Active/Pending Bookings
+        // We check for 'pending' (as requested) and 'confirmed' (active stays)
+        $hasActiveBookings = $hotel->bookings()
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->exists();
+
+        if ($hasActiveBookings) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Cannot delete hotel. There are active or pending guest bookings associated with this property.'
+            ], 422);
+        }
+
+        // 3. Optional but Pro: Delete images from storage before removing DB records
+        foreach ($hotel->images as $image) {
+            if (\Illuminate\Support\Facades\Storage::disk('public')->exists($image->image_path)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($image->image_path);
+            }
+        }
+
+        // 4. Delete the Hotel
+        // (This will also delete locations and images due to 'cascade' in migrations)
+        $hotel->delete();
+
+        return $this->successResponse(null, 'Hotel and all associated data deleted successfully.');
+    }
 }

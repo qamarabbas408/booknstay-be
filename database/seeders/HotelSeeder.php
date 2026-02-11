@@ -1,120 +1,120 @@
 <?php
-
 namespace Database\Seeders;
 
-use App\Models\Amenity;
-use App\Models\Hotel;
 use App\Models\User;
+use App\Models\Hotel;
+use App\Models\Amenity;
+use App\Models\RoomTier; // If you still use the catalog, otherwise ignore
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class HotelSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Get our existing vendors
-        $grandHotelVendor = User::where('email', 'marco@grandhotel.com')->first();
-        $urbanLoftVendor = User::where('email', 'sarah@eventspace.com')->first();
+        // 1. Get Vendors and Amenities
+        $vendors = User::where('role', 'vendor')->get();
+        $amenities = Amenity::all();
 
-        if (! $grandHotelVendor || ! $urbanLoftVendor) {
-            $this->command->error('Vendors not found. Please run UserSeeder first.');
-
+        if ($vendors->isEmpty() || $amenities->isEmpty()) {
+            $this->command->error("Please run UserSeeder and AmenitySeeder first!");
             return;
         }
 
-        // 2. Define initial hotels (your existing 4)
-        $hotels = [
+        $hotelsData = [
             [
-                'user_id' => $grandHotelVendor->id,
-                'name' => 'The Blue Horizon Resort',
-                'description' => 'A stunning oceanfront resort featuring private beaches, infinity pools, and world-class dining. Perfect for summer festivals and relaxing stays.',
-                'address' => '888 Coastal Way',
-                'city' => 'Miami',
-                'country' => 'USA',
-                'zip_code' => '33101',
-                'total_rooms' => 120,
-                'max_capacity' => 450,
-                'price_range' => '$$$$',
-                'status' => 'active',
+                'name' => 'Grand Azure Resort & Spa',
+                'description' => 'A paradise escape in the heart of the Maldives. Features private villas, crystal clear lagoons, and world-class underwater dining.',
+                'stars' => 5,
+                'tax' => 12.00,
+                'fee' => 25.00,
+                'location' => ['city' => 'Male', 'country' => 'Maldives', 'address' => 'Villingili Island', 'lat' => 4.1755, 'lng' => 73.5093],
+                'rooms' => [
+                    ['name' => 'Ocean Villa', 'price' => 450, 'cap' => 2, 'inv' => 10],
+                    ['name' => 'Family Beach Suite', 'price' => 850, 'cap' => 4, 'inv' => 5],
+                ]
             ],
             [
-                'user_id' => $urbanLoftVendor->id,
-                'name' => 'Industrial Chic Suites',
-                'description' => 'A boutique hotel in a converted warehouse. Features exposed brick, high ceilings, and an underground jazz club. Ideal for city explorers.',
-                'address' => '42 Iron Street',
-                'city' => 'New York',
-                'country' => 'USA',
-                'zip_code' => '10001',
-                'total_rooms' => 35,
-                'max_capacity' => 80,
-                'price_range' => '$$',
-                'status' => 'active',
+                'name' => 'The Urban Boutique Hotel',
+                'description' => 'Sophisticated city living in Manhattan. Exposed brick walls, rooftop jazz bar, and artisanal coffee in every room.',
+                'stars' => 4,
+                'tax' => 8.50,
+                'fee' => 15.00,
+                'location' => ['city' => 'New York', 'country' => 'USA', 'address' => '242 West 30th St', 'lat' => 40.7128, 'lng' => -74.0060],
+                'rooms' => [
+                    ['name' => 'Standard Queen', 'price' => 180, 'cap' => 2, 'inv' => 25],
+                    ['name' => 'Executive Loft', 'price' => 320, 'cap' => 2, 'inv' => 10],
+                ]
             ],
             [
-                'user_id' => $grandHotelVendor->id,
-                'name' => 'Neon Palms Hotel',
-                'description' => 'A retro-themed hotel with a modern twist. Located in the heart of the nightlife district, hosting weekly pool parties.',
-                'address' => '500 Sunset Blvd',
-                'city' => 'Miami',
-                'country' => 'USA',
-                'zip_code' => '33139',
-                'total_rooms' => 85,
-                'max_capacity' => 250,
-                'price_range' => '$$$',
-                'status' => 'active',
+                'name' => 'Budget Stay Guesthouse',
+                'description' => 'Clean, comfortable and affordable. Perfect for backpackers and solo travelers looking for a central location.',
+                'stars' => 3,
+                'tax' => 5.00,
+                'fee' => 0.00,
+                'location' => ['city' => 'Male', 'country' => 'Maldives', 'address' => 'Maafannu District', 'lat' => 4.1748, 'lng' => 73.5100],
+                'rooms' => [
+                    ['name' => 'Economy Single', 'price' => 45, 'cap' => 1, 'inv' => 15],
+                    ['name' => 'Standard Double', 'price' => 75, 'cap' => 2, 'inv' => 10],
+                ]
             ],
             [
-                'user_id' => $urbanLoftVendor->id,
-                'name' => 'The Skyline Pavilion',
-                'description' => 'This venue doubles as a luxury hotel and a premier event space. The rooftop garden offers 360-degree views of the Manhattan skyline.',
-                'address' => '100 Wall Street',
-                'city' => 'New York',
-                'country' => 'USA',
-                'zip_code' => '10005',
-                'total_rooms' => 15,
-                'max_capacity' => 500,
-                'price_range' => '$$$$',
-                'status' => 'pending',
-            ],
+                'name' => 'Summit Conference Center',
+                'description' => 'Specifically designed for business travelers. High-speed fiber internet, 12 meeting rooms, and ergonomic workspaces.',
+                'stars' => 4,
+                'tax' => 10.00,
+                'fee' => 10.00,
+                'location' => ['city' => 'London', 'country' => 'UK', 'address' => 'Canary Wharf', 'lat' => 51.5055, 'lng' => -0.0235],
+                'rooms' => [
+                    ['name' => 'Business Studio', 'price' => 210, 'cap' => 1, 'inv' => 40],
+                ]
+            ]
         ];
 
-        // 3. Add 16 more hotels to reach 20
-        for ($i = 1; $i <= 16; $i++) {
-            $hotels[] = [
-                'user_id' => $i % 2 === 0 ? $grandHotelVendor->id : $urbanLoftVendor->id,
-                'name' => "Sample Hotel {$i}",
-                'description' => "This is a sample description for hotel {$i}, offering great amenities and comfortable stays.",
-                'address' => "{$i} Example Street",
-                'city' => $i % 2 === 0 ? 'Miami' : 'New York',
-                'country' => 'USA',
-                'zip_code' => '1000'.$i,
-                'total_rooms' => 50 + $i,
-                'max_capacity' => 100 + ($i * 10),
-                'price_range' => $i % 3 === 0 ? '$$$$' : '$$',
-                'status' => 'active',
-                'base_price' => $i * 50,
-                // 'star_rating' => 3,
-            ];
-        }
-        $allAmenityIds = Amenity::pluck('id')->toArray();
-        $priceRanges = ['$', '$$', '$$$', '$$$$'];
-        $stars = [3, 5, 4];
+        foreach ($hotelsData as $data) {
+            DB::transaction(function () use ($data, $vendors, $amenities) {
+                // A. Create Hotel
+                $hotel = Hotel::create([
+                    'user_id' => $vendors->random()->id,
+                    'name' => $data['name'],
+                    'description' => $data['description'],
+                    'star_rating' => $data['stars'],
+                    'tax_rate' => $data['tax'],
+                    'service_fee' => $data['fee'],
+                    'status' => 'active',
+                ]);
 
-        // 4. Create hotels and attach images
-        foreach ($hotels as $hotelData) {
-            $hotel = Hotel::create($hotelData);
+                // B. Create Location (Polymorphic)
+                $hotel->location()->create([
+                    'city' => $data['location']['city'],
+                    'country' => $data['location']['country'],
+                    'full_address' => $data['location']['address'],
+                    'latitude' => $data['location']['lat'],
+                    'longitude' => $data['location']['lng'],
+                ]);
 
-            $hotel->images()->createMany([
-                ['image_path' => 'hotels/sample1.jpg', 'is_primary' => true],
-                ['image_path' => 'hotels/sample2.jpg', 'is_primary' => false],
-            ]);
-            $hotel->amenities()->attach(
-                array_rand(array_flip($allAmenityIds), rand(3, 5))
-            );
-            $hotel->price_range = $priceRanges[array_rand($priceRanges)];
-            $hotel->star_rating = $stars[array_rand($stars)];
+                // C. Attach Amenities (Random 4)
+                $hotel->amenities()->attach($amenities->random(4)->pluck('id'));
 
-            $hotel->save();
+                // D. Create Room Types (The V2 "Products")
+                foreach ($data['rooms'] as $room) {
+                    $hotel->roomTypes()->create([
+                        'name' => $room['name'],
+                        'base_price' => $room['price'],
+                        'max_occupancy' => $room['cap'],
+                        'total_inventory' => $room['inv'],
+                        'status' => 'active',
+                    ]);
+                }
 
+                // E. Create 5 Placeholder Images for the Gallery UI
+                for ($i = 1; $i <= 5; $i++) {
+                    $hotel->images()->create([
+                        'image_path' => "hotels/sample_{$i}.jpg",
+                        'is_primary' => ($i === 1),
+                    ]);
+                }
+            });
         }
     }
 }

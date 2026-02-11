@@ -45,11 +45,13 @@ Route::prefix('v1')->group(function () {
         Route::get('vendor/hotels', [VendorHotelController::class, 'index']);
         Route::put('/vendor/hotels/{hotel}', [VendorHotelController::class, 'update']);
         Route::get('vendor/hotels/{hotel}', [VendorHotelController::class, 'show']);
+        Route::delete('vendor/hotels/{hotel}', [VendorHotelController::class, 'destroy']);
 
         // BOOKINGS
         Route::get('guest/bookings', [BookingController::class, 'index']);
         Route::post('guest/event/booking', [BookingController::class, 'storeEventBooking']);
         Route::post('guest/hotel/booking', [BookingController::class, 'storeHotelBooking']);
+
 
         // ROOM TIERS
         Route::get('/hotels/{hotel}/room-types', [VendorRoomTypeController::class, 'index']);
@@ -100,7 +102,7 @@ Route::prefix('v2')->group(function () {
     });
 
     Route::middleware('auth:sanctum')->prefix('guest')->group(function () {
-        Route::post('guest/hotel/booking', [V2BookingController::class, 'storeHotelBooking']);
+        Route::post('/hotel/booking', [V2BookingController::class, 'storeHotelBooking']);
     });
 
 });

@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
             HotelSeeder::class,
             EventCategorySeeder::class,
             EventSeeder::class,
-            BookingSeeder::class,       // 6. Bookings (needs hotels and events)
+//            BookingSeeder::class,       // 6. Bookings (needs hotels and events)
 
         ]);
 
