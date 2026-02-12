@@ -21,9 +21,18 @@ class VendorEventResource extends JsonResource
             'visibility' => $this->visibility,
             'start_date' => $this->start_time?->format('Y-m-d H:i'),
             'end_date' => $this->end_time?->format('Y-m-d H:i'),
-            'description'=>$this->description, 
-            'location' => $this->location,
-            'venue' => $this->venue,
+            'description'=>$this->description,
+//            'location' => $this->location,
+//            'venue' => $this->venue,
+            'location_details' => [
+                'country' => $this->location?->country,
+                'city' => $this->location?->city,
+                'full_address' => $this->location?->full_address,
+                'zip_code' => $this->location?->zip_code,
+                'lat' => $this->location?->latitude,
+                'lng' => $this->location?->longitude,
+            ],
+
             // Stats for Dashboard
             'total_capacity' => $this->total_capacity,
             'tickets_sold' => $this->tickets()->sum('sold'),
@@ -32,7 +41,7 @@ class VendorEventResource extends JsonResource
             // Relationships
             'category' => $this->category?->name,
             // 'tickets' => $this->tickets, // Includes tiers and prices
-            'images' => $this->images->map(fn ($img) => [
+            'gallery' => $this->images->map(fn ($img) => [
                 'id' => $img->id,
                 'url' => asset('storage/'.$img->image_path),
                 'is_primary' => $img->is_primary,
@@ -43,13 +52,13 @@ class VendorEventResource extends JsonResource
                 'name' => $ticket->name,
                 'price' => (float) $ticket->price,
                 'quantity' => $ticket->quantity,
-                // BUSINESS LOGIC: 
+                // BUSINESS LOGIC:
                 // A tier is NOT editable if it has confirmed or completed bookings
                 'is_locked' => $ticket->bookings()
                                      ->whereIn('status', ['confirmed', 'completed'])
                                      ->exists(),
                 'sold_count' => $ticket->bookings()->count(),
-                'features' => $ticket->features ?? [], 
+                'features' => $ticket->features ?? [],
 
             ];
         }),

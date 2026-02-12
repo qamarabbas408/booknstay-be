@@ -15,7 +15,7 @@ use App\Http\Controllers\Api\Vendor\VendorStatusController;
 use App\Http\Controllers\Api\Vendor\VendorHotelController;
 use App\Http\Controllers\Api\Vendor\VendorRoomTypeController;
 use App\Http\Controllers\Api\V2\BookingController as V2BookingController;
-
+use App\Http\Controllers\Api\V2\VendorEventController as V2VendorEventController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -99,6 +99,10 @@ Route::prefix('v2')->group(function () {
     Route::get('/approval-status', action: [VendorStatusController::class, 'check']);
     Route::post('/vendor/hotel', action: [VendorHotelController::class, 'store']);
 //    Route::post('guest/hotel/booking', [V2BookingController::class, 'storeHotelBooking']);
+
+        Route::post('/vendor/event', [V2VendorEventController::class, 'store']);
+        Route::put('vendor/event/{event}', [V2VendorEventController::class, 'update']); //edit
+
     });
 
     Route::middleware('auth:sanctum')->prefix('guest')->group(function () {

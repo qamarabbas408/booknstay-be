@@ -93,8 +93,21 @@ class Event extends Model
         return $this->hasMany(EventImage::class);
     }
 
-    public function location()
+    public function location() // Renamed from 'location'
     {
         return $this->morphOne(Location::class, 'locatable');
+    }
+
+    protected static function booted()
+    {
+        static::deleting(function ($model) {
+            // Automatically delete the location record when the parent is deleted
+            $model->location()->delete();
+
+            // Also a good place to delete images if they are in a separate table
+            $model->images()->each(function($image) {
+                $image->delete();
+            });
+        });
     }
 }

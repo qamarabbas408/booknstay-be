@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V2;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\BookingResource;
 use App\Models\Booking;
 use App\Models\Hotel;
 use App\Models\RoomType;
@@ -16,7 +17,41 @@ class BookingController extends Controller
     //
     use ApiResponser;
 
+    public function index(Request $request)
+    {
+        // 1. Get query on the current user's bookings
+        $query = auth()->user()->bookings()
+            ->with([
+                'bookable.location', // For the address/city
+                'bookable.images',   // For the thumbnail
+                'roomType',          // NEW: For hotel room details
+                'ticketTier'         // For event ticket details
+            ])
+            ->latest();
 
+        // 2. Filter by Tab (Upcoming vs Past)
+        $tab = $request->query('tab', 'upcoming');
+
+        if ($tab === 'upcoming') {
+            $query->whereIn('status', ['confirmed', 'pending']);
+        } else {
+            $query->whereIn('status', ['completed', 'cancelled']);
+        }
+
+        // 3. Optional: Filter by Type (hotel or event)
+        if ($request->has('type') && $request->type !== 'all') {
+            $typeClass = $request->type === 'hotel' ? 'App\Models\Hotel' : 'App\Models\Event';
+            $query->where('bookable_type', $typeClass);
+        }
+
+        $bookings = $query->paginate($request->query('limit', 10));
+
+        return $this->paginatedResponse(
+            $bookings,
+            BookingResource::collection($bookings)
+        );
+
+    }
     public function storeHotelBooking(Request $request)
     {
         $request->validate([

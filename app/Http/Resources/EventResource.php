@@ -14,42 +14,48 @@ class EventResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // Logic: Find the primary banner image
         $mainImage = $this->images->where('is_primary', true)->first() ?? $this->images->first();
 
         return [
             'id' => $this->id,
             'title' => $this->title,
-            'category' => $this->category->name,
-            'location' => $this->location,
-            'venue' => $this->venue,
-            'price' => '$' . number_format($this->base_price, 0),
-            // Time Logic
-            'start_date' => $this->start_time?->format('M d, Y'),
-            'end_date' => $this->end_time?->format('M d, Y'),
-            'is_past' => $this->is_past,
-            'highlights' => $this->highlights ?? [], // Returns ["Stage 1", "Stage 2"]
             'description' => $this->description,
-            // Inventory Logic
-            'total_capacity' => $this->total_capacity,
-            // Inventory Logic
-            'tickets_left' => $this->tickets_left, // This calls getTicketsLeftAttribute() in Model
-            'is_sold_out' => $this->tickets_left <= 0,
+            'highlights' => $this->highlights ?? [], // Array of strings
 
-            // 'image' => $this->image_path ?? 'https://via.placeholder.com/800x600',
-            'image' => $mainImage
-                ? $mainImage->image_path
-                : null,
-            'rating' => 4.8, // Dummy until Review logic
-            'attendees' => 1200, // Dummy until Ticket sales logic
-            'featured' => (bool) $this->is_featured,
-            'trending' => (bool) $this->is_trending,
+            // 1. V2 Location Mapping
+            'location_details' => [
+//                'venue' => $this->venue,
+                'address' => $this->location?->full_address,
+                'city' => $this->location?->city,
+                'country' => $this->location?->country,
+                'lat' => (float) $this->location?->latitude,
+                'lng' => (float) $this->location?->longitude,
+            ],
+
+            // 2. Timing
+            'date' => $this->start_time?->format('F d, Y'),
+            'time' => $this->start_time?->format('g:i A') . ' – ' . $this->end_time?->format('g:i A'),
+            'is_past' => $this->is_past,
+
+            // 3. Ticket Tiers (The "Products")
             'ticketTypes' => $this->tickets->map(fn($t) => [
                 'id' => $t->id,
                 'name' => $t->name,
                 'price' => (float) $t->price,
-                'features' => $t->features ?? [], // Returns ["VIP Entry", "Free Drinks"]
+                'features' => $t->features ?? [], // Array of strings
                 'available' => $t->quantity - $t->sold,
+                'soldOut' => ($t->quantity - $t->sold) <= 0,
             ]),
+
+            // 4. Media
+            'image' => $mainImage ? asset('storage/' . $mainImage->image_path) : null,
+            'gallery' => $this->images->map(fn($img) => asset('storage/' . $img->image_path)),
+
+            // 5. Social Proof
+            'category' => $this->category?->name,
+            'rating' => 4.8, // Static for now
+            'attendees' => $this->tickets->sum('sold') . ' going',
         ];
     }
 }
